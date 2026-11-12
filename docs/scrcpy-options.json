@@ -1,0 +1,973 @@
+{
+	"$comment": "Catalogo opzioni scrcpy per generare la UI. type: flag | enum | multiEnum | int | float | bitrate | text | file | color | optionalValue. Opzione non impostata = non emessa. default è solo informativo (valore usato da scrcpy se l'opzione manca). requires: 'opt' (deve essere impostata) o 'opt=valore' (soddisfatto anche se opt non è impostata e il suo default è quel valore). conflicts è simmetrico. listCommand: comando scrcpy che stampa i valori possibili.",
+	"scrcpyVersion": "5.0.1",
+	"categories": [
+		{ "id": "source", "title": "Sorgente", "icon": "\uE8EA", "groups": ["connection", "video", "audio", "camera", "display"] },
+		{ "id": "interaction", "title": "Interazione", "icon": "\uE962", "groups": ["input", "window", "device"] },
+		{ "id": "advanced", "title": "Avanzate", "icon": "\uE90F", "groups": ["recording", "network", "log"] }
+	],
+	"groups": [
+		{
+			"id": "connection",
+			"title": "Connessione",
+			"icon": "\uE703",
+			"description": "Come Screeny raggiunge il dispositivo: USB, TCP/IP o un seriale specifico. Con un solo dispositivo collegato non serve impostare nulla.",
+			"options": [
+				{
+					"name": "serial",
+					"short": "s",
+					"type": "text",
+					"label": "Seriale dispositivo",
+					"description": "Seriale del dispositivo. Obbligatorio solo se più dispositivi sono collegati ad adb (elenco con 'adb devices -l').",
+					"conflicts": ["select-usb", "select-tcpip"]
+				},
+				{
+					"name": "select-usb",
+					"short": "d",
+					"type": "flag",
+					"label": "Usa dispositivo USB",
+					"description": "Usa il dispositivo USB, se ce n'è esattamente uno (come 'adb -d').",
+					"conflicts": ["select-tcpip"]
+				},
+				{
+					"name": "select-tcpip",
+					"short": "e",
+					"type": "flag",
+					"label": "Usa dispositivo TCP/IP",
+					"description": "Usa il dispositivo TCP/IP, se ce n'è esattamente uno (come 'adb -e')."
+				},
+				{
+					"name": "tcpip",
+					"type": "optionalValue",
+					"label": "Connessione TCP/IP",
+					"description": "Configura e connette il dispositivo via TCP/IP. Con un indirizzo si connette a quello (porta default 5555). Senza indirizzo trova l'IP del dispositivo collegato via USB, abilita TCP/IP e si connette. Il prefisso '+' forza la riconnessione.",
+					"placeholder": "[+]ip[:porta]"
+				},
+				{
+					"name": "kill-adb-on-close",
+					"type": "flag",
+					"label": "Termina adb alla chiusura",
+					"description": "Termina il processo adb quando scrcpy si chiude."
+				}
+			]
+		},
+		{
+			"id": "video",
+			"title": "Video",
+			"icon": "\uE714",
+			"description": "Codifica e qualità del flusso video: codec, bitrate, risoluzione massima, frame rate e orientamento.",
+			"options": [
+				{
+					"name": "video-source",
+					"type": "enum",
+					"label": "Sorgente video",
+					"description": "Sorgente del video. La camera richiede Android 12+.",
+					"default": "display",
+					"values": [
+						{ "value": "display", "description": "Schermo del dispositivo" },
+						{ "value": "camera", "description": "Fotocamera del dispositivo (Android 12+)" }
+					]
+				},
+				{
+					"name": "video-codec",
+					"type": "enum",
+					"label": "Codec video",
+					"description": "Codec usato per codificare il video sul dispositivo.",
+					"default": "h264",
+					"values": [
+						{ "value": "h264" },
+						{ "value": "h265" },
+						{ "value": "av1" },
+						{ "value": "vp8" },
+						{ "value": "vp9" }
+					]
+				},
+				{
+					"name": "video-bit-rate",
+					"short": "b",
+					"type": "bitrate",
+					"label": "Bitrate video",
+					"description": "Bitrate di codifica video in bit/s. Suffissi ammessi: K (x1000) e M (x1000000).",
+					"default": "8M",
+					"min": 0,
+					"max": 2147483647,
+					"placeholder": "es. 8M"
+				},
+				{
+					"name": "max-size",
+					"short": "m",
+					"type": "int",
+					"label": "Dimensione massima",
+					"description": "Limita larghezza e altezza del video; l'altra dimensione è calcolata mantenendo l'aspect ratio. In modalità camera seleziona la dimensione della sorgente. 0 = illimitato.",
+					"default": "0",
+					"min": 0,
+					"max": 65535
+				},
+				{
+					"name": "max-fps",
+					"type": "float",
+					"label": "FPS massimi",
+					"description": "Limita il frame rate di cattura (supportato ufficialmente da Android 10).",
+					"min": 0
+				},
+				{
+					"name": "video-buffer",
+					"type": "int",
+					"label": "Buffer video (ms)",
+					"description": "Ritardo di buffering prima di mostrare i frame. Aumenta la latenza per compensare il jitter. 0 = nessun buffering.",
+					"default": "0",
+					"min": 0,
+					"max": 3600000
+				},
+				{
+					"name": "video-encoder",
+					"type": "text",
+					"label": "Encoder video",
+					"description": "Encoder MediaCodec specifico da usare (dipende dal codec video scelto).",
+					"listCommand": "--list-encoders"
+				},
+				{
+					"name": "video-codec-options",
+					"type": "text",
+					"label": "Opzioni codec video",
+					"description": "Opzioni per l'encoder video del dispositivo, separate da virgola. type: int (default), long, float, string. Chiavi: https://d.android.com/reference/android/media/MediaFormat",
+					"placeholder": "key[:type]=value[,...]"
+				},
+				{
+					"name": "crop",
+					"type": "text",
+					"label": "Ritaglio",
+					"description": "Ritaglia lo schermo lato dispositivo. Valori nell'orientamento naturale del dispositivo (portrait per un telefono, landscape per un tablet).",
+					"placeholder": "width:height:x:y"
+				},
+				{
+					"name": "angle",
+					"type": "float",
+					"label": "Rotazione custom (gradi)",
+					"description": "Ruota il contenuto video di un angolo arbitrario, in gradi, in senso orario."
+				},
+				{
+					"name": "capture-orientation",
+					"type": "enum",
+					"label": "Orientamento di cattura",
+					"description": "Orientamento del video catturato: rotazione oraria in gradi; 'flip' applica un flip orizzontale prima della rotazione. Il prefisso '@' blocca la rotazione rispetto all'orientamento naturale; '@' da solo la blocca sull'orientamento iniziale.",
+					"default": "0",
+					"values": [
+						{ "value": "0" },
+						{ "value": "90" },
+						{ "value": "180" },
+						{ "value": "270" },
+						{ "value": "flip0" },
+						{ "value": "flip90" },
+						{ "value": "flip180" },
+						{ "value": "flip270" },
+						{ "value": "@", "description": "Bloccato sull'orientamento iniziale" },
+						{ "value": "@0", "description": "Bloccato, relativo all'orientamento naturale" },
+						{ "value": "@90", "description": "Bloccato, relativo all'orientamento naturale" },
+						{ "value": "@180", "description": "Bloccato, relativo all'orientamento naturale" },
+						{ "value": "@270", "description": "Bloccato, relativo all'orientamento naturale" },
+						{ "value": "@flip0", "description": "Bloccato, relativo all'orientamento naturale" },
+						{ "value": "@flip90", "description": "Bloccato, relativo all'orientamento naturale" },
+						{ "value": "@flip180", "description": "Bloccato, relativo all'orientamento naturale" },
+						{ "value": "@flip270", "description": "Bloccato, relativo all'orientamento naturale" }
+					]
+				},
+				{
+					"name": "display-orientation",
+					"type": "enum",
+					"label": "Orientamento visualizzazione",
+					"description": "Orientamento iniziale della visualizzazione sul PC: rotazione oraria in gradi; 'flip' applica un flip orizzontale prima della rotazione.",
+					"default": "0",
+					"values": [
+						{ "value": "0" },
+						{ "value": "90" },
+						{ "value": "180" },
+						{ "value": "270" },
+						{ "value": "flip0" },
+						{ "value": "flip90" },
+						{ "value": "flip180" },
+						{ "value": "flip270" }
+					]
+				},
+				{
+					"name": "orientation",
+					"type": "enum",
+					"label": "Orientamento (visualizzazione + registrazione)",
+					"description": "Scorciatoia per impostare insieme --display-orientation e --record-orientation.",
+					"values": [
+						{ "value": "0" },
+						{ "value": "90" },
+						{ "value": "180" },
+						{ "value": "270" },
+						{ "value": "flip0" },
+						{ "value": "flip90" },
+						{ "value": "flip180" },
+						{ "value": "flip270" }
+					],
+					"conflicts": ["display-orientation", "record-orientation"]
+				},
+				{
+					"name": "min-size-alignment",
+					"type": "enum",
+					"label": "Allineamento minimo dimensioni",
+					"description": "Larghezza e altezza del video saranno multipli di questo valore (il massimo tra questo e quanto richiesto dal codec).",
+					"default": "1",
+					"values": [
+						{ "value": "1" },
+						{ "value": "2" },
+						{ "value": "4" },
+						{ "value": "8" },
+						{ "value": "16" }
+					]
+				},
+				{
+					"name": "ignore-video-encoder-constraints",
+					"type": "flag",
+					"label": "Ignora vincoli encoder",
+					"description": "Non considerare le capacità dichiarate dall'encoder video (utile se sono errate). Può servire forzare anche l'allineamento minimo."
+				},
+				{
+					"name": "no-downsize-on-error",
+					"type": "flag",
+					"label": "Non ridurre risoluzione su errore",
+					"description": "Di default, su errore MediaCodec scrcpy riprova con una risoluzione più bassa. Questa opzione lo disabilita."
+				},
+				{
+					"name": "no-video",
+					"type": "flag",
+					"label": "Disabilita video",
+					"description": "Disabilita l'inoltro del video."
+				},
+				{
+					"name": "no-video-playback",
+					"type": "flag",
+					"label": "Non mostrare il video",
+					"description": "Disabilita la riproduzione del video sul PC (il video viene comunque catturato, ad esempio per la registrazione)."
+				},
+				{
+					"name": "hwdec",
+					"type": "enum",
+					"label": "Decodifica hardware",
+					"description": "Decodifica video hardware sul PC.",
+					"default": "auto",
+					"values": [
+						{ "value": "auto", "description": "Primo decoder hardware disponibile, altrimenti software" },
+						{ "value": "disabled", "description": "Sempre decodifica software" },
+						{ "value": "d3d11va", "description": "Direct3D 11 (Windows)" }
+					],
+					"conflicts": ["no-video", "no-video-playback", "no-window", "no-playback"]
+				}
+			]
+		},
+		{
+			"id": "audio",
+			"title": "Audio",
+			"icon": "\uE767",
+			"description": "Inoltro dell'audio del dispositivo al PC (Android 11+): sorgente, codec, bitrate e buffering.",
+			"options": [
+				{
+					"name": "audio-source",
+					"type": "enum",
+					"label": "Sorgente audio",
+					"description": "Sorgente dell'audio catturato sul dispositivo.",
+					"default": "output",
+					"values": [
+						{ "value": "output", "description": "Tutto l'output audio; disattiva la riproduzione sul dispositivo" },
+						{ "value": "playback", "description": "Riproduzione audio (le app possono escludersi)" },
+						{ "value": "mic", "description": "Microfono" },
+						{ "value": "mic-unprocessed", "description": "Microfono non processato (raw)" },
+						{ "value": "mic-camcorder", "description": "Microfono ottimizzato per registrazione video" },
+						{ "value": "mic-voice-recognition", "description": "Microfono ottimizzato per riconoscimento vocale" },
+						{ "value": "mic-voice-communication", "description": "Microfono per comunicazioni (cancellazione eco, AGC)" },
+						{ "value": "voice-call", "description": "Chiamata vocale" },
+						{ "value": "voice-call-uplink", "description": "Solo uplink della chiamata" },
+						{ "value": "voice-call-downlink", "description": "Solo downlink della chiamata" },
+						{ "value": "voice-performance", "description": "Performance live (karaoke): microfono + riproduzione" }
+					]
+				},
+				{
+					"name": "audio-codec",
+					"type": "enum",
+					"label": "Codec audio",
+					"description": "Codec usato per codificare l'audio sul dispositivo.",
+					"default": "opus",
+					"values": [
+						{ "value": "opus" },
+						{ "value": "aac" },
+						{ "value": "flac" },
+						{ "value": "raw", "description": "PCM non compresso" }
+					]
+				},
+				{
+					"name": "audio-bit-rate",
+					"type": "bitrate",
+					"label": "Bitrate audio",
+					"description": "Bitrate di codifica audio in bit/s. Suffissi ammessi: K (x1000) e M (x1000000). Ignorato per flac e raw.",
+					"default": "128K",
+					"min": 0,
+					"max": 2147483647,
+					"placeholder": "es. 128K"
+				},
+				{
+					"name": "audio-buffer",
+					"type": "int",
+					"label": "Buffer audio (ms)",
+					"description": "Ritardo di buffering audio. Valori bassi riducono la latenza ma aumentano il rischio di glitch.",
+					"default": "50",
+					"min": 0,
+					"max": 3600000
+				},
+				{
+					"name": "audio-output-buffer",
+					"type": "int",
+					"label": "Buffer output SDL (ms)",
+					"description": "Dimensione del buffer di output audio SDL. Da non modificare senza un buon motivo.",
+					"default": "10",
+					"min": 0,
+					"max": 1000
+				},
+				{
+					"name": "audio-encoder",
+					"type": "text",
+					"label": "Encoder audio",
+					"description": "Encoder MediaCodec specifico da usare (dipende dal codec audio scelto).",
+					"listCommand": "--list-encoders"
+				},
+				{
+					"name": "audio-codec-options",
+					"type": "text",
+					"label": "Opzioni codec audio",
+					"description": "Opzioni per l'encoder audio del dispositivo, separate da virgola. type: int (default), long, float, string. Chiavi: https://d.android.com/reference/android/media/MediaFormat",
+					"placeholder": "key[:type]=value[,...]"
+				},
+				{
+					"name": "audio-dup",
+					"type": "flag",
+					"label": "Duplica audio",
+					"description": "Cattura l'audio e continua a riprodurlo anche sul dispositivo.",
+					"requires": ["audio-source=playback"],
+					"conflicts": ["no-audio"]
+				},
+				{
+					"name": "no-audio",
+					"type": "flag",
+					"label": "Disabilita audio",
+					"description": "Disabilita l'inoltro dell'audio."
+				},
+				{
+					"name": "no-audio-playback",
+					"type": "flag",
+					"label": "Non riprodurre l'audio",
+					"description": "Disabilita la riproduzione dell'audio sul PC."
+				},
+				{
+					"name": "require-audio",
+					"type": "flag",
+					"label": "Audio obbligatorio",
+					"description": "Di default, se la cattura audio fallisce scrcpy prosegue solo con il video. Con questa opzione invece fallisce."
+				}
+			]
+		},
+		{
+			"id": "camera",
+			"title": "Camera",
+			"icon": "\uE722",
+			"description": "Mirroring della fotocamera invece dello schermo. Richiede Android 12+ e la sorgente video impostata su camera.",
+			"options": [
+				{
+					"name": "camera-id",
+					"type": "text",
+					"label": "Id camera",
+					"description": "Id della camera da mostrare.",
+					"listCommand": "--list-cameras",
+					"requires": ["video-source=camera"],
+					"conflicts": ["camera-facing"]
+				},
+				{
+					"name": "camera-facing",
+					"type": "enum",
+					"label": "Direzione camera",
+					"description": "Seleziona la camera in base alla direzione.",
+					"values": [
+						{ "value": "front", "description": "Frontale" },
+						{ "value": "back", "description": "Posteriore" },
+						{ "value": "external", "description": "Esterna" }
+					],
+					"requires": ["video-source=camera"]
+				},
+				{
+					"name": "camera-size",
+					"type": "text",
+					"label": "Dimensione cattura",
+					"description": "Dimensione di cattura esplicita della camera.",
+					"placeholder": "<width>x<height>",
+					"listCommand": "--list-camera-sizes",
+					"requires": ["video-source=camera"],
+					"conflicts": ["max-size", "camera-ar"]
+				},
+				{
+					"name": "camera-ar",
+					"type": "text",
+					"label": "Aspect ratio camera",
+					"description": "Seleziona la dimensione della camera per aspect ratio (+/- 10%): 'sensor' (quello del sensore), '<num>:<den>' (es. 4:3) o un valore (es. 1.6).",
+					"placeholder": "sensor | 4:3 | 1.6",
+					"requires": ["video-source=camera"]
+				},
+				{
+					"name": "camera-fps",
+					"type": "int",
+					"label": "FPS camera",
+					"description": "Frame rate di cattura della camera. Se non impostato usa quello di default di Android (30 fps).",
+					"min": 0,
+					"max": 65535,
+					"requires": ["video-source=camera"]
+				},
+				{
+					"name": "camera-high-speed",
+					"type": "flag",
+					"label": "Modalità high-speed",
+					"description": "Abilita la cattura ad alta velocità. Limitata a specifiche risoluzioni e frame rate (vedi --list-camera-sizes).",
+					"requires": ["video-source=camera", "camera-fps"]
+				},
+				{
+					"name": "camera-zoom",
+					"type": "float",
+					"label": "Zoom iniziale",
+					"description": "Valore iniziale dello zoom della camera.",
+					"requires": ["video-source=camera"]
+				},
+				{
+					"name": "camera-torch",
+					"type": "flag",
+					"label": "Accendi torcia",
+					"description": "Accende il flash della camera all'avvio.",
+					"requires": ["video-source=camera"]
+				}
+			]
+		},
+		{
+			"id": "display",
+			"title": "Display",
+			"icon": "\uE7F4",
+			"description": "Quale display mostrare, oppure un display virtuale separato su cui avviare un'app.",
+			"options": [
+				{
+					"name": "display-id",
+					"type": "int",
+					"label": "Id display",
+					"description": "Display del dispositivo da mostrare.",
+					"default": "0",
+					"min": 0,
+					"max": 2147483647,
+					"listCommand": "--list-displays",
+					"requires": ["video-source=display"],
+					"conflicts": ["new-display"]
+				},
+				{
+					"name": "new-display",
+					"type": "optionalValue",
+					"label": "Nuovo display virtuale",
+					"description": "Crea un nuovo display virtuale con risoluzione e densità indicate. Senza valore usa dimensioni e DPI del display principale. Esempi: 1920x1080, 1920x1080/420, /240.",
+					"placeholder": "[<width>x<height>][/<dpi>]",
+					"requires": ["video-source=display"],
+					"conflicts": ["no-video"]
+				},
+				{
+					"name": "flex-display",
+					"short": "x",
+					"type": "flag",
+					"label": "Display flessibile",
+					"description": "Ridimensiona continuamente il display virtuale per adattarlo alla finestra.",
+					"requires": ["new-display"],
+					"conflicts": ["no-control", "crop", "window-width", "window-height"]
+				},
+				{
+					"name": "display-ime-policy",
+					"type": "enum",
+					"label": "Posizione tastiera virtuale",
+					"description": "Dove mostrare la tastiera virtuale (IME). Solo su display secondario (display-id diverso da 0 o nuovo display).",
+					"values": [
+						{ "value": "local", "description": "Sul display mostrato" },
+						{ "value": "fallback", "description": "Sul display di fallback (principale)" },
+						{ "value": "hide", "description": "Nascosta" }
+					],
+					"requires": ["video-source=display"]
+				},
+				{
+					"name": "no-vd-destroy-content",
+					"type": "flag",
+					"label": "Conserva app alla chiusura",
+					"description": "Alla chiusura del display virtuale le app in esecuzione vengono spostate sul display principale invece che distrutte."
+				},
+				{
+					"name": "no-vd-system-decorations",
+					"type": "flag",
+					"label": "Senza decorazioni di sistema",
+					"description": "Disabilita le decorazioni di sistema sul display virtuale."
+				},
+				{
+					"name": "start-app",
+					"type": "text",
+					"label": "Avvia app",
+					"description": "Avvia un'app Android tramite package name. Prefisso '?' = cerca per nome (case-insensitive, più lento); '+' = force-stop prima dell'avvio; entrambi nell'ordine '+?'.",
+					"placeholder": "org.mozilla.firefox | ?firefox | +?firefox",
+					"listCommand": "--list-apps",
+					"conflicts": ["no-control"]
+				}
+			]
+		},
+		{
+			"id": "input",
+			"title": "Input e controllo",
+			"icon": "\uE765",
+			"description": "Come tastiera, mouse e gamepad del PC controllano il dispositivo, e la gestione degli appunti.",
+			"options": [
+				{
+					"name": "no-control",
+					"short": "n",
+					"type": "flag",
+					"label": "Sola lettura",
+					"description": "Disabilita il controllo del dispositivo (mirroring in sola lettura).",
+					"conflicts": ["otg"]
+				},
+				{
+					"name": "keyboard",
+					"type": "enum",
+					"label": "Modalità tastiera",
+					"description": "Come inviare la tastiera al dispositivo. Con uhid e aoa il layout va configurato sul dispositivo (Impostazioni > Sistema > Lingue e immissione > Tastiera fisica). Su Windows aoa funziona solo in modalità OTG.",
+					"default": "sdk",
+					"values": [
+						{ "value": "disabled", "description": "Non inviare la tastiera" },
+						{ "value": "sdk", "description": "API di sistema Android" },
+						{ "value": "uhid", "description": "Tastiera HID fisica simulata (UHID)" },
+						{ "value": "aoa", "description": "Tastiera fisica via protocollo AOAv2 (solo USB)" }
+					]
+				},
+				{
+					"name": "mouse",
+					"type": "enum",
+					"label": "Modalità mouse",
+					"description": "Come inviare il mouse al dispositivo. In uhid e aoa il mouse viene catturato (LAlt, LSuper o RSuper lo rilasciano). Su Windows aoa funziona solo in modalità OTG.",
+					"default": "sdk",
+					"values": [
+						{ "value": "disabled", "description": "Non inviare il mouse" },
+						{ "value": "sdk", "description": "API di sistema Android (richiede riproduzione video)" },
+						{ "value": "uhid", "description": "Mouse HID fisico simulato (UHID)" },
+						{ "value": "aoa", "description": "Mouse fisico via protocollo AOAv2 (solo USB)" }
+					]
+				},
+				{
+					"name": "gamepad",
+					"type": "enum",
+					"label": "Modalità gamepad",
+					"description": "Come inviare i gamepad al dispositivo.",
+					"default": "disabled",
+					"values": [
+						{ "value": "disabled", "description": "Non inviare i gamepad" },
+						{ "value": "uhid", "description": "Gamepad HID fisici simulati (UHID)" },
+						{ "value": "aoa", "description": "Gamepad fisici via protocollo AOAv2 (solo USB)" }
+					]
+				},
+				{
+					"name": "mouse-bind",
+					"type": "text",
+					"label": "Binding click secondari",
+					"description": "Una o due sequenze di 4 caratteri (destro, centrale, 4°, 5° click); la seconda vale con Shift premuto. Caratteri: '+' inoltra, '-' ignora, 'b' BACK, 'h' HOME, 's' APP_SWITCH, 'n' pannello notifiche. Default 'bhsn:++++' (sdk) o '++++:bhsn' (uhid/aoa).",
+					"placeholder": "xxxx[:xxxx]"
+				},
+				{
+					"name": "no-mouse-hover",
+					"type": "flag",
+					"label": "Non inoltrare hover",
+					"description": "Non inoltrare il movimento del mouse senza click.",
+					"requires": ["mouse=sdk"]
+				},
+				{
+					"name": "prefer-text",
+					"type": "flag",
+					"label": "Preferisci eventi testo",
+					"description": "Inietta lettere e spazio come eventi testo invece che tasti. Evita problemi con i caratteri speciali ma rompe i tasti nei giochi (WASD).",
+					"requires": ["keyboard=sdk"],
+					"conflicts": ["raw-key-events"]
+				},
+				{
+					"name": "raw-key-events",
+					"type": "flag",
+					"label": "Solo eventi tasto",
+					"description": "Inietta eventi tasto per tutti i tasti e ignora gli eventi testo.",
+					"requires": ["keyboard=sdk"]
+				},
+				{
+					"name": "no-key-repeat",
+					"type": "flag",
+					"label": "No ripetizione tasti",
+					"description": "Non inoltrare gli eventi ripetuti quando un tasto è tenuto premuto.",
+					"requires": ["keyboard=sdk"]
+				},
+				{
+					"name": "legacy-paste",
+					"type": "flag",
+					"label": "Incolla legacy",
+					"description": "Su Ctrl+V inietta il testo degli appunti come sequenza di tasti. Workaround per dispositivi che non accettano gli appunti impostati via API."
+				},
+				{
+					"name": "no-clipboard-autosync",
+					"type": "flag",
+					"label": "No sincronizzazione appunti",
+					"description": "Disabilita la sincronizzazione automatica degli appunti tra PC e dispositivo."
+				},
+				{
+					"name": "shortcut-mod",
+					"type": "multiEnum",
+					"separator": ",",
+					"label": "Modificatori scorciatoie",
+					"description": "Tasti modificatori per le scorciatoie di scrcpy; ognuno selezionato attiva le scorciatoie da solo.",
+					"default": "lalt,lsuper",
+					"values": [
+						{ "value": "lctrl", "description": "Ctrl sinistro" },
+						{ "value": "rctrl", "description": "Ctrl destro" },
+						{ "value": "lalt", "description": "Alt sinistro" },
+						{ "value": "ralt", "description": "Alt destro" },
+						{ "value": "lsuper", "description": "Win sinistro" },
+						{ "value": "rsuper", "description": "Win destro" }
+					]
+				},
+				{
+					"name": "otg",
+					"type": "flag",
+					"label": "Modalità OTG",
+					"description": "Simula tastiera e mouse fisici come se fossero collegati al dispositivo con un cavo OTG. Non serve adb, il mirroring è disabilitato. Solo USB; tastiera/mouse/gamepad accettano solo aoa o disabled.",
+					"conflicts": ["record", "turn-screen-off", "stay-awake", "show-touches", "power-off-on-close", "display-id"]
+				}
+			]
+		},
+		{
+			"id": "window",
+			"title": "Finestra",
+			"icon": "\uE8A7",
+			"description": "Aspetto e posizione della finestra di scrcpy sul PC.",
+			"options": [
+				{
+					"name": "window-title",
+					"type": "text",
+					"label": "Titolo finestra",
+					"description": "Titolo personalizzato della finestra (default: modello del dispositivo)."
+				},
+				{
+					"name": "window-x",
+					"type": "int",
+					"label": "Posizione X",
+					"description": "Posizione orizzontale iniziale della finestra. Vuoto = automatica.",
+					"min": -32767,
+					"max": 32767
+				},
+				{
+					"name": "window-y",
+					"type": "int",
+					"label": "Posizione Y",
+					"description": "Posizione verticale iniziale della finestra. Vuoto = automatica.",
+					"min": -32767,
+					"max": 32767
+				},
+				{
+					"name": "window-width",
+					"type": "int",
+					"label": "Larghezza",
+					"description": "Larghezza iniziale della finestra. 0 = automatica.",
+					"default": "0",
+					"min": 0,
+					"max": 65535
+				},
+				{
+					"name": "window-height",
+					"type": "int",
+					"label": "Altezza",
+					"description": "Altezza iniziale della finestra. 0 = automatica.",
+					"default": "0",
+					"min": 0,
+					"max": 65535
+				},
+				{
+					"name": "window-borderless",
+					"type": "flag",
+					"label": "Senza bordi",
+					"description": "Disabilita le decorazioni della finestra."
+				},
+				{
+					"name": "always-on-top",
+					"type": "flag",
+					"label": "Sempre in primo piano",
+					"description": "Mantiene la finestra sopra le altre."
+				},
+				{
+					"name": "fullscreen",
+					"short": "f",
+					"type": "flag",
+					"label": "Schermo intero",
+					"description": "Avvia a schermo intero."
+				},
+				{
+					"name": "no-window-aspect-ratio-lock",
+					"type": "flag",
+					"label": "Aspect ratio libero",
+					"description": "Non bloccare l'aspect ratio della finestra."
+				},
+				{
+					"name": "render-fit",
+					"type": "enum",
+					"label": "Adattamento rendering",
+					"description": "Come il video si adatta alla finestra. Default letterbox (unscaled con display flessibile).",
+					"default": "letterbox",
+					"values": [
+						{ "value": "letterbox", "description": "Mantiene l'aspect ratio con bande nere" },
+						{ "value": "stretched", "description": "Riempie la finestra senza mantenere l'aspect ratio" },
+						{ "value": "unscaled", "description": "Nessun ridimensionamento" }
+					]
+				},
+				{
+					"name": "background-color",
+					"type": "color",
+					"label": "Colore di sfondo",
+					"description": "Colore di sfondo della finestra, in esadecimale (#RGB o #RRGGBB).",
+					"default": "#222",
+					"placeholder": "#RRGGBB"
+				},
+				{
+					"name": "render-driver",
+					"type": "enum",
+					"label": "Driver di rendering",
+					"description": "Suggerisce a SDL il driver di rendering da usare (è solo un hint).",
+					"values": [
+						{ "value": "direct3d" },
+						{ "value": "opengl" },
+						{ "value": "opengles2" },
+						{ "value": "opengles" },
+						{ "value": "software" }
+					]
+				},
+				{
+					"name": "no-mipmaps",
+					"type": "flag",
+					"label": "Disabilita mipmap",
+					"description": "Disabilita la generazione dei mipmap, che con OpenGL migliorano la qualità del ridimensionamento."
+				},
+				{
+					"name": "no-window",
+					"type": "flag",
+					"label": "Nessuna finestra",
+					"description": "Non apre la finestra di scrcpy (implica nessuna riproduzione video). Utile per registrare o per il solo audio."
+				},
+				{
+					"name": "no-playback",
+					"short": "N",
+					"type": "flag",
+					"label": "Nessuna riproduzione",
+					"description": "Disabilita la riproduzione di video e audio sul PC (come --no-video-playback --no-audio-playback)."
+				},
+				{
+					"name": "disable-screensaver",
+					"type": "flag",
+					"label": "Disabilita screensaver",
+					"description": "Disabilita lo screensaver del PC mentre scrcpy è in esecuzione."
+				}
+			]
+		},
+		{
+			"id": "device",
+			"title": "Comportamento dispositivo",
+			"icon": "\uE7E8",
+			"description": "Cosa succede sul dispositivo durante e dopo la sessione: schermo, standby, tocchi.",
+			"options": [
+				{
+					"name": "turn-screen-off",
+					"short": "S",
+					"type": "flag",
+					"label": "Spegni schermo",
+					"description": "Spegne subito lo schermo del dispositivo; il mirroring continua.",
+					"conflicts": ["no-control"]
+				},
+				{
+					"name": "stay-awake",
+					"short": "w",
+					"type": "flag",
+					"label": "Resta acceso",
+					"description": "Tiene acceso il dispositivo mentre scrcpy è in esecuzione, se il dispositivo è in carica.",
+					"conflicts": ["no-control"]
+				},
+				{
+					"name": "keep-active",
+					"type": "flag",
+					"label": "Mantieni attivo",
+					"description": "Tiene acceso lo schermo simulando attività dell'utente.",
+					"conflicts": ["no-control"]
+				},
+				{
+					"name": "screen-off-timeout",
+					"type": "int",
+					"label": "Timeout schermo (s)",
+					"description": "Timeout di spegnimento dello schermo durante la sessione; il valore originale viene ripristinato all'uscita.",
+					"min": 0,
+					"max": 2147483
+				},
+				{
+					"name": "show-touches",
+					"short": "t",
+					"type": "flag",
+					"label": "Mostra tocchi",
+					"description": "Abilita 'mostra tocchi' all'avvio e lo ripristina all'uscita. Mostra solo i tocchi fisici, non i click da scrcpy.",
+					"conflicts": ["no-control"]
+				},
+				{
+					"name": "power-off-on-close",
+					"type": "flag",
+					"label": "Spegni schermo alla chiusura",
+					"description": "Spegne lo schermo del dispositivo quando scrcpy si chiude.",
+					"conflicts": ["no-control"]
+				},
+				{
+					"name": "no-power-on",
+					"type": "flag",
+					"label": "Non accendere all'avvio",
+					"description": "Non accende il dispositivo all'avvio."
+				},
+				{
+					"name": "no-cleanup",
+					"type": "flag",
+					"label": "Nessun ripristino all'uscita",
+					"description": "Non rimuove il server dal dispositivo e non ripristina lo stato (mostra tocchi, resta acceso, alimentazione) all'uscita."
+				},
+				{
+					"name": "push-target",
+					"type": "text",
+					"label": "Cartella drag & drop",
+					"description": "Cartella di destinazione sul dispositivo per i file trascinati nella finestra (passata così com'è ad 'adb push').",
+					"default": "/sdcard/Download/"
+				}
+			]
+		},
+		{
+			"id": "recording",
+			"title": "Registrazione",
+			"icon": "\uE7C8",
+			"description": "Registra la sessione su un file video o audio.",
+			"options": [
+				{
+					"name": "record",
+					"short": "r",
+					"type": "file",
+					"label": "File di registrazione",
+					"description": "Registra su file. Il formato è determinato da --record-format o dall'estensione del file.",
+					"placeholder": "file.mp4"
+				},
+				{
+					"name": "record-format",
+					"type": "enum",
+					"label": "Formato registrazione",
+					"description": "Forza il formato di registrazione. opus/aac/flac/wav sono solo audio e richiedono il codec audio corrispondente (wav = raw); mp4 non supporta audio raw né video vp8.",
+					"values": [
+						{ "value": "mp4" },
+						{ "value": "mkv" },
+						{ "value": "m4a", "description": "Solo audio" },
+						{ "value": "mka", "description": "Solo audio" },
+						{ "value": "opus", "description": "Solo audio, codec opus" },
+						{ "value": "aac", "description": "Solo audio, codec aac" },
+						{ "value": "flac", "description": "Solo audio, codec flac" },
+						{ "value": "wav", "description": "Solo audio, codec raw" }
+					],
+					"requires": ["record"]
+				},
+				{
+					"name": "record-orientation",
+					"type": "enum",
+					"label": "Orientamento registrazione",
+					"description": "Rotazione oraria della registrazione, in gradi.",
+					"default": "0",
+					"values": [
+						{ "value": "0" },
+						{ "value": "90" },
+						{ "value": "180" },
+						{ "value": "270" }
+					],
+					"requires": ["record"]
+				},
+				{
+					"name": "time-limit",
+					"type": "int",
+					"label": "Durata massima (s)",
+					"description": "Durata massima del mirroring, in secondi.",
+					"min": 0,
+					"max": 2147483647
+				}
+			]
+		},
+		{
+			"id": "network",
+			"title": "Rete e tunnel adb",
+			"icon": "\uE968",
+			"description": "Porte e tunnel adb. Da modificare solo in configurazioni di rete particolari.",
+			"options": [
+				{
+					"name": "port",
+					"short": "p",
+					"type": "text",
+					"label": "Porta locale",
+					"description": "Porta (o range di porte) TCP su cui il client resta in ascolto.",
+					"default": "27183:27199",
+					"placeholder": "porta[:porta]"
+				},
+				{
+					"name": "force-adb-forward",
+					"type": "flag",
+					"label": "Forza adb forward",
+					"description": "Non tenta di usare 'adb reverse' per connettersi al dispositivo."
+				},
+				{
+					"name": "tunnel-host",
+					"type": "text",
+					"label": "Host tunnel",
+					"description": "Indirizzo IP del tunnel adb per raggiungere il server scrcpy. Abilita automaticamente --force-adb-forward.",
+					"default": "localhost"
+				},
+				{
+					"name": "tunnel-port",
+					"type": "int",
+					"label": "Porta tunnel",
+					"description": "Porta TCP del tunnel adb. Abilita automaticamente --force-adb-forward. 0 = usa la porta locale del tunnel.",
+					"default": "0",
+					"min": 0,
+					"max": 65535
+				}
+			]
+		},
+		{
+			"id": "log",
+			"title": "Log e diagnostica",
+			"icon": "\uE9D9",
+			"description": "Livello di dettaglio dei messaggi di scrcpy mostrati nel log.",
+			"options": [
+				{
+					"name": "verbosity",
+					"short": "V",
+					"type": "enum",
+					"label": "Livello di log",
+					"description": "Livello di dettaglio dei log.",
+					"default": "info",
+					"values": [
+						{ "value": "verbose" },
+						{ "value": "debug" },
+						{ "value": "info" },
+						{ "value": "warn" },
+						{ "value": "error" }
+					]
+				},
+				{
+					"name": "print-fps",
+					"type": "flag",
+					"label": "Mostra FPS",
+					"description": "Stampa il framerate nei log. Si può attivare/disattivare in qualsiasi momento con MOD+i.",
+					"conflicts": ["no-video-playback", "no-window", "no-playback"]
+				}
+			]
+		}
+	]
+}

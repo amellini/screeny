@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+	x:Class="Screeny.App"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="using:Screeny">
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<!--
+				Stili per gli elementi creati da codice. I colori vanno messi qui come ThemeResource:
+				leggere un pennello da Application.Current.Resources in C# restituisce quello del tema
+				dell'app e non segue il tema scelto in Screeny né i cambi a runtime.
+			-->
+			<Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+				<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+				<Setter Property="TextWrapping" Value="Wrap" />
+			</Style>
+
+			<Style x:Key="FlagTextStyle" TargetType="TextBlock">
+				<Setter Property="FontFamily" Value="Consolas" />
+				<Setter Property="FontSize" Value="11" />
+				<Setter Property="Foreground" Value="{ThemeResource TextFillColorTertiaryBrush}" />
+				<Setter Property="IsTextSelectionEnabled" Value="True" />
+			</Style>
+
+			<Style x:Key="ChipStyle" TargetType="Border">
+				<Setter Property="Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+				<Setter Property="CornerRadius" Value="4" />
+				<Setter Property="Padding" Value="8,2,8,3" />
+				<Setter Property="MaxWidth" Value="230" />
+			</Style>
+
+			<Style x:Key="ChipTextStyle" BasedOn="{StaticResource CaptionTextBlockStyle}" TargetType="TextBlock">
+				<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+				<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+			</Style>
+
+			<Style x:Key="SubtleIconButtonStyle" BasedOn="{StaticResource DefaultButtonStyle}" TargetType="Button">
+				<Setter Property="Background" Value="Transparent" />
+				<Setter Property="BorderThickness" Value="0" />
+			</Style>
+		</ResourceDictionary>
+	</Application.Resources>
+</Application>

@@ -1,0 +1,66 @@
+name: Release
+
+# Ogni merge/push su main pubblica una nuova release con gli zip portabili (x64 e ARM64).
+# La versione è VersionPrefix del .csproj + numero di esecuzione del workflow (es. 0.1.12).
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/screenshots/**"
+      - "LICENSE"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Controllo traduzioni
+        run: python docs/check_i18n.py
+
+      - name: Versione
+        id: version
+        shell: pwsh
+        run: |
+          $prefix = ([xml](Get-Content Screeny/Screeny.csproj)).Project.PropertyGroup.VersionPrefix | Where-Object { $_ } | Select-Object -First 1
+          "version=$prefix.${{ github.run_number }}" >> $env:GITHUB_OUTPUT
+
+      # Build "portabile": niente MSIX (che richiederebbe un certificato), runtime .NET e Windows App SDK inclusi.
+      - name: Publish x64 e ARM64
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          foreach ($target in @(@{ Platform = 'x64'; Rid = 'win-x64' }, @{ Platform = 'ARM64'; Rid = 'win-arm64' })) {
+            $out = "out/$($target.Rid)"
+            dotnet publish Screeny/Screeny.csproj -c Release `
+              -p:Platform=$($target.Platform) -r $($target.Rid) `
+              -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true -p:SelfContained=true `
+              -p:Version=$version -o $out
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            Compress-Archive -Path "$out/*" -DestinationPath "Screeny-$version-$($target.Rid).zip"
+          }
+
+      - name: Crea la release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          gh release create "v$version" Screeny-*.zip `
+            --title "Screeny $version" `
+            --target "${{ github.sha }}" `
+            --generate-notes `
+            --notes "Scarica lo zip per la tua architettura (quasi sempre **win-x64**), estrailo e avvia ``Screeny.exe``. Serve [scrcpy](https://github.com/Genymobile/scrcpy) installato: vedi il [README](https://github.com/${{ github.repository }}#readme)."

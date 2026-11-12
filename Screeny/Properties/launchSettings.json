@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Screeny (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Screeny (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
